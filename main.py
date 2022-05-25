@@ -4,10 +4,14 @@ import pigpio
 from chassis import Chassis
 import rotary_encoder
 
+from simple_pid import PID
+import pyrealsense2 as rs
+import sys
+
 Debug_ = False # When you're not debugging, set this flag to False
 app = Flask(__name__)
 
-ServerIP = '192.168.1.107'
+ServerIP = sys.argv[1]#'192.168.137.119'
 ServerPort = 5000
 
 allowedClients = {117, 223, 332}
@@ -44,7 +48,7 @@ def rect():
 
 		dir = True
 
-		for i in range(msg["width"]+1):
+		for i in range(msg["width"]):
 			if dir:
 				moves.append({"dir":"forward", "dist":msg["length"]})
 			else:
@@ -52,7 +56,7 @@ def rect():
 
 			dir = not dir
 
-			if i < msg["width"]:
+			if i < msg["width"]-1:
 				moves.append({"dir":"right", "dist":1})
 
 		ExecuteTrajectory(msg["resolution"], moves)
@@ -67,6 +71,7 @@ freq = 500
 ch = Chassis(pi, freq)
 
 pos = [0, 0, 0, 0]
+prev = []
 
 def cb1(way):
 	global pos
